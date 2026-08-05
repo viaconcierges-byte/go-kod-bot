@@ -1,7 +1,5 @@
-# Production Dockerfile for Yandex Cloud Serverless Container
-# This Dockerfile is optimized for production deployment
-
-FROM node:24-alpine AS builder
+# Production Dockerfile for bothost
+FROM node:20-alpine AS builder
 
 WORKDIR /app
 
@@ -11,12 +9,15 @@ RUN npm ci
 
 COPY . .
 
-RUN mkdir -p public
+ENV NODE_ENV=production
+ENV USE_DATABASE=false
+ENV OUTPUT_MODE=
 
 RUN npm run build
 
-# Production stage
-FROM node:24-alpine AS runner
+RUN test -f .next/BUILD_ID && echo "BUILD_ID exists" || (echo "BUILD_ID missing" && exit 1)
+
+FROM node:20-alpine AS runner
 
 WORKDIR /app
 
@@ -37,8 +38,5 @@ COPY --from=builder --chown=nextjs:nodejs /app/scripts ./scripts
 USER nextjs
 
 EXPOSE 8080
-
-HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
-  CMD node -e "require('http').get('http://localhost:8080/api/health', (r) => r.statusCode === 200 ? process.exit(0) : process.exit(1))"
 
 CMD ["npx", "next", "start", "-p", "8080"]

@@ -36,13 +36,9 @@ ENV NEXT_DISABLE_TURBOPACK=true
 RUN addgroup --system --gid 1001 nodejs
 RUN adduser --system --uid 1001 nextjs
 
-COPY --from=builder --chown=nextjs:nodejs /app/package*.json ./
-COPY --from=builder --chown=nextjs:nodejs /app/node_modules ./node_modules
-COPY --from=builder --chown=nextjs:nodejs /app/.next ./.next
-COPY --from=builder --chown=nextjs:nodejs /app/public ./public
-COPY --from=builder --chown=nextjs:nodejs /app/next.config.ts ./
-COPY --from=builder --chown=nextjs:nodejs /app/lib ./lib
-COPY --from=builder --chown=nextjs:nodejs /app/scripts ./scripts
+# Copy the entire built project (including .next, node_modules, lib, scripts,
+# next.config.ts) so `next start` can find the production build.
+COPY --from=builder --chown=nextjs:nodejs /app ./
 
 USER nextjs
 

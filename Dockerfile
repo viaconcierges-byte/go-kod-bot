@@ -15,8 +15,6 @@ ENV OUTPUT_MODE=
 
 RUN npm run build
 
-RUN test -f .next/BUILD_ID && echo "BUILD_ID exists" || (echo "BUILD_ID missing" && exit 1)
-
 FROM node:20-alpine AS runner
 
 WORKDIR /app
@@ -24,13 +22,9 @@ WORKDIR /app
 ENV NODE_ENV=production
 ENV PORT=8080
 
-COPY --from=builder /app/package*.json ./
-COPY --from=builder /app/node_modules ./node_modules
-COPY --from=builder /app/.next ./.next
-COPY --from=builder /app/public ./public
-COPY --from=builder /app/next.config.ts ./
-COPY --from=builder /app/lib ./lib
-COPY --from=builder /app/scripts ./scripts
+COPY --from=builder /app ./
+
+RUN ls -la .next && cat .next/BUILD_ID
 
 EXPOSE 8080
 
